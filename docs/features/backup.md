@@ -27,11 +27,14 @@ Automatically back up your K-profiles, cloud profiles, app settings, spool inven
 
 Bambuddy supports multiple Git providers. Choose one below and follow the setup steps.
 
+!!! danger "Private repositories only"
+    Bambuddy refuses to back up to a public (or GitLab "internal") repository — the saved data includes MQTT credentials, Home Assistant tokens, Prometheus tokens, your Bambu Cloud email, and printer access codes via K-profiles. The save endpoint runs a privacy check on every config change and returns HTTP 400 if the target isn't confirmed private. Scheduled backup runs re-check before each push, so flipping a previously-private repo to public in your provider's UI also aborts the next run with a clear failure log entry. There is no opt-out. If you have an existing public bambuddy-backup repository on GitHub or elsewhere, **delete it now** and create a fresh private one.
+
 ### Setup
 
 #### :material-github: GitHub
 
-1. **Create a GitHub repository** (can be private)
+1. **Create a GitHub repository** (**must be private** — see warning above)
 2. **Generate a Personal Access Token (PAT)**:
     - Go to [GitHub Personal Access Tokens](https://github.com/settings/tokens){ target="_blank" rel="noopener" } (`https://github.com/settings/tokens`)
     - Click **Generate new token**, then **Generate new token (classic)**
@@ -48,7 +51,7 @@ Bambuddy supports multiple Git providers. Choose one below and follow the setup 
 
 #### :material-gitlab: GitLab
 
-1. **Create a GitLab repository** (can be private)
+1. **Create a GitLab repository** (**must be private** — see warning above)
 2. **Generate a Personal Access Token (PAT)**:
     - Go to [GitLab Personal Access Tokens](https://gitlab.com/-/user_settings/personal_access_tokens){ target="_blank" rel="noopener" } (`https://gitlab.com/-/user_settings/personal_access_tokens`)
 	- Under **Personal access tokens**,  click **Generate token**, then **Legacy token**
@@ -66,7 +69,7 @@ Bambuddy supports multiple Git providers. Choose one below and follow the setup 
 
 #### :material-git: Gitea
 
-1. **Create a new repository** (can be private)
+1. **Create a new repository** (**must be private** — see warning above)
 2. **Generate a Personal Access Token (PAT)**:
     - Go to **Settings** → **Applications**
     - Under **Manage Access Tokens**, expand **Generate New Token**
@@ -88,7 +91,7 @@ Bambuddy supports multiple Git providers. Choose one below and follow the setup 
 
 #### :material-git: Forgejo
 
-1. **Create a new repository** (can be private)
+1. **Create a new repository** (**must be private** — see warning above)
 2. **Generate a Personal Access Token (PAT)**:
     - Go to **Settings** → **Applications**
     - Click **New access token**
