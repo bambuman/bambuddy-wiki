@@ -55,6 +55,13 @@ Hubitat Elevation driver that talks to Bambuddy over REST (and optionally MQTT).
 **Author:** [jc21](https://github.com/jc21) &middot; [Repository](https://github.com/jc21/hubitat-bambuddy)
 </div>
 
+<div class="feature-card" markdown>
+### [:material-home-assistant: Home Assistant Sidecar Add-ons](https://github.com/tzimpel/homeassistant-bambuddy-sidecar-apps)
+Home Assistant Add-on repository that packages Bambuddy's optional sidecar containers as one-click HA add-ons. Includes the OrcaSlicer API sidecar for server-side slicing &mdash; add the repository URL in Home Assistant's add-on store and install without writing any Docker Compose.
+
+**Author:** [Jan-Tobias Zimpel](https://github.com/tzimpel) &middot; [Repository](https://github.com/tzimpel/homeassistant-bambuddy-sidecar-apps)
+</div>
+
 </div>
 
 ---
