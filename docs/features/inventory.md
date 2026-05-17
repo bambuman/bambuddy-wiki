@@ -30,7 +30,8 @@ The Spool Inventory page shows all your spools in a searchable, filterable table
 - **Status tabs**: Active, Archived, All
 - **Quick filters**: Used, New
 - **Stock filter**: All, Stock (no slicer profile), Configured (has slicer profile)
-- **Dropdowns**: Filter by Material, Brand
+- **Dropdowns**: Filter by Material, Brand, Category, Spool Name, **Storage Location**
+    - The **Storage Location** chip lists every distinct location currently assigned to your spools (e.g. *Shelf A*, *Drawer 1*), plus a **No location set** entry to find unfiled spools. The chip stays hidden until at least one spool has a storage location, so fresh installs aren't cluttered. Trailing whitespace is ignored, so `"Shelf A"` and `"Shelf A "` collapse to one option.
 - **Search**: Find spools by name, brand, material, or color
 - **View modes**: Table or Cards
 - **Group similar**: Toggle to visually collapse identical unused/unassigned spools into a single expandable row or card with a count badge (e.g., "5 identical spools"). Spools are grouped by material, subtype, brand, color, and label weight. Used or AMS-assigned spools always appear individually. Group state persists across sessions.

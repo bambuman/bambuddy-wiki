@@ -407,6 +407,34 @@ Defaults are based on BambuStudio's official filament drying profiles:
 
 ---
 
+## :material-power-plug-off: Auto Off After Drying (Smart Plug)
+
+If the printer (or its AMS) is on a [smart plug](smart-plugs.md), Bambuddy can cut power automatically once a drying cycle completes. The trigger works for all three drying paths — [manual drying](#starting-a-drying-session), [queue auto-drying](#queue-auto-drying), and [ambient drying](#ambient-drying) — because Bambuddy detects completion from the printer's MQTT state (`dry_time` falling from a positive value to `0`), not from how the cycle was started.
+
+### Enabling
+
+1. Open **Settings** > **Smart Plugs** (or expand the plug card on the dashboard)
+2. On the plug that powers the printer and AMS, enable **Auto Off After Drying**
+3. Set the **Drying delay (minutes)** — default **10 minutes**, gives the AMS chamber time to cool before power is cut
+
+### How It Differs From Print-Finish Auto-Off
+
+| | Print-Finish Auto-Off | Auto Off After Drying |
+|---|---|---|
+| **Trigger** | Print completes successfully | AMS `dry_time` reaches 0 |
+| **Default delay** | 5 minutes | 10 minutes (chamber stays warmer) |
+| **Cooldown mode** | Time or temperature (hotend) | Time only |
+| **Per-plug toggle** | `auto_off` | `auto_off_after_drying` |
+
+Both toggles are independent — you can enable either, both, or neither on the same plug.
+
+!!! note "Per-AMS routing"
+    The trigger is plug-vs-printer-level: if your printer has multiple AMS units on one plug, the auto-off fires whenever **any** of them finishes a cycle. Per-AMS targeting (a separate plug for the AMS, or different plugs for AMS 0 vs AMS 1 on dual-AMS printers) is not currently supported.
+
+[:material-arrow-right: Full Smart Plug documentation](smart-plugs.md#auto-off-after-ams-drying)
+
+---
+
 ## :material-chart-line: Historical Charts
 
 Click on the humidity or temperature indicator to view historical data:
