@@ -341,16 +341,101 @@ Bambuddy does not run Tailscale itself; it just *reads* `tailscale status` from 
 host's tailscaled daemon. Setup is whatever Tailscale's normal install flow looks
 like for your platform.
 
-=== "Native install (Linux / macOS / Windows)"
+If you already have Tailscale running on the Bambuddy host and `tailscale status`
+works, skip to **Setup — per VP** below. Otherwise pick your platform and follow
+the install steps.
 
-    Follow Tailscale's [download instructions](https://tailscale.com/download) for
-    your OS and run `tailscale up`. Bambuddy picks up the host's identity
-    automatically the next time you flip a VP's Tailscale toggle on.
+=== "Linux (Debian / Ubuntu / Mint / Raspberry Pi OS)"
 
-=== "Docker"
+    The official Tailscale install script auto-detects your distro and adds the
+    upstream apt repository. Run it as root:
 
-    Mount the host's tailscaled socket into the Bambuddy container so the
-    container's `tailscale` CLI can talk to it. In `docker-compose.yml`:
+    ```bash
+    curl -fsSL https://tailscale.com/install.sh | sh
+    ```
+
+    Then bring the daemon up and authenticate. The command prints a one-time
+    login URL — open it in any browser to attach this host to your tailnet:
+
+    ```bash
+    sudo tailscale up
+    ```
+
+    Verify Bambuddy will see it:
+
+    ```bash
+    tailscale status        # should print at least your own 100.x.x.x line
+    ```
+
+    Bambuddy picks up the host's identity automatically the next time you flip
+    a VP's Tailscale toggle on.
+
+=== "Linux (Fedora / RHEL / CentOS)"
+
+    Same install script — it auto-detects RPM-based distros and adds the dnf repo:
+
+    ```bash
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up
+    tailscale status
+    ```
+
+    On selinux-strict systems (RHEL 9 / Rocky / Alma) you may need to
+    `sudo setsebool -P httpd_can_network_connect 1` if Bambuddy runs under a
+    confined service unit; the default Bambuddy systemd unit is unconfined and
+    doesn't need this.
+
+=== "macOS"
+
+    Tailscale ships as a Mac App Store app **and** a standalone CLI. Bambuddy
+    needs the CLI to be reachable from the user running Bambuddy.
+
+    **Easiest path — Homebrew (CLI + daemon, no App Store account needed):**
+
+    ```bash
+    brew install tailscale
+    sudo brew services start tailscale
+    sudo tailscale up
+    tailscale status
+    ```
+
+    **App Store path:** install
+    [Tailscale from the Mac App Store](https://apps.apple.com/app/tailscale/id1475387142),
+    sign in, then open a terminal and run:
+
+    ```bash
+    /Applications/Tailscale.app/Contents/MacOS/Tailscale status
+    ```
+
+    If that works but plain `tailscale` doesn't, symlink the CLI somewhere in
+    `$PATH` (so the user running Bambuddy can find it):
+
+    ```bash
+    sudo ln -s /Applications/Tailscale.app/Contents/MacOS/Tailscale /usr/local/bin/tailscale
+    ```
+
+=== "Windows"
+
+    1. Download the MSI installer from
+       [tailscale.com/download/windows](https://tailscale.com/download/windows)
+       and run it.
+    2. Sign in via the system-tray icon; the host attaches to your tailnet.
+    3. Open PowerShell as the same user Bambuddy runs under and verify:
+
+       ```powershell
+       tailscale status
+       ```
+
+    The Tailscale MSI adds `tailscale.exe` to `PATH` for new shells; if
+    Bambuddy was already running, restart it so it inherits the updated `PATH`.
+
+=== "Docker (Bambuddy in container, Tailscale on host)"
+
+    This is the **recommended** Docker path — install Tailscale on the host as
+    one of the platforms above, then mount the host's tailscaled socket into the
+    Bambuddy container so the container's `tailscale` CLI can talk to it.
+
+    In `docker-compose.yml`:
 
     ```yaml
     services:
@@ -363,6 +448,124 @@ like for your platform.
     Tailscale itself runs **on the host**, not inside the Bambuddy container.
     Bambuddy logs a one-time hint at startup if it detects it's running inside
     Docker without this socket mounted.
+
+    Run `tailscale status` from inside the container to confirm the socket mount
+    works:
+
+    ```bash
+    docker exec bambuddy tailscale status
+    ```
+
+=== "Synology / TrueNAS / Unraid"
+
+    These NAS platforms ship Tailscale as a first-party package or community
+    plugin — install it through the NAS UI rather than via the install script,
+    so updates flow through the platform's package manager. After install, sign
+    in and verify with `tailscale status` from the NAS shell. Then mount
+    `/var/run/tailscale/tailscaled.sock` into the Bambuddy container exactly as
+    in the Docker tab above.
+
+    | Platform | Where to install Tailscale from |
+    |---|---|
+    | Synology DSM 7+ | [Package Center → Tailscale](https://tailscale.com/kb/1131/synology) (official) |
+    | TrueNAS SCALE | Apps catalog → community "tailscale" app |
+    | Unraid | Community Applications → "Tailscale" |
+
+!!! tip "Authenticating without a browser on the host"
+    On headless machines (Raspberry Pi, NAS, remote server) `sudo tailscale up`
+    still prints a login URL — copy it to a browser on any other device on
+    your network and sign in there. The host doesn't need a local browser.
+
+!!! tip "Generate a reusable auth key"
+    For unattended setups, generate an
+    [auth key](https://login.tailscale.com/admin/settings/keys) in the Tailscale
+    admin console and run `sudo tailscale up --authkey=tskey-...` instead — no
+    interactive login required.
+
+### Setup — install Tailscale on the slicer machine
+
+Tailscale is a tunnel, not a tunnel-server — **both ends** need to be on the
+tailnet. Install Tailscale on whichever machine runs Bambu Studio / OrcaSlicer
+and sign it in to the **same Tailscale account** (or accept an invite to the
+host's tailnet, if you split accounts).
+
+=== "Windows (most slicer users)"
+
+    1. Download the MSI from
+       [tailscale.com/download/windows](https://tailscale.com/download/windows)
+       and run it.
+    2. Sign in via the system-tray icon — use the same Tailscale account as the
+       Bambuddy host, or accept the host's tailnet invite.
+    3. Open PowerShell and verify reachability to your Bambuddy host. Replace
+       `100.x.x.x` with the IP shown on the Bambuddy VP card:
+
+       ```powershell
+       tailscale status
+       ping 100.x.x.x
+       ```
+
+       A successful ping confirms the tunnel is up.
+
+=== "macOS"
+
+    Install from the
+    [Mac App Store](https://apps.apple.com/app/tailscale/id1475387142)
+    (recommended for desktop use — the menu-bar app handles sign-in and
+    auto-reconnect), then sign in to the same tailnet as the Bambuddy host.
+
+    Verify from Terminal:
+
+    ```bash
+    tailscale status
+    ping 100.x.x.x
+    ```
+
+=== "Linux desktop"
+
+    Use the same install script as the host:
+
+    ```bash
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up        # sign in to the same tailnet as the Bambuddy host
+    ping 100.x.x.x
+    ```
+
+=== "Phone / tablet (read-only access)"
+
+    Tailscale's
+    [iOS](https://apps.apple.com/app/tailscale/id1470499037) and
+    [Android](https://play.google.com/store/apps/details?id=com.tailscale.ipn)
+    apps both connect the device to your tailnet for browser access to the
+    Bambuddy UI (`http://100.x.x.x:8000` or
+    `http://your-host.<tailnet>.ts.net:8000`). The mobile apps are read-only as
+    far as the Bambu slicer is concerned — there is no Bambu Studio / OrcaSlicer
+    for mobile — but they're useful for monitoring prints away from home.
+
+!!! tip "Same account, or shared node?"
+    The simplest setup is to sign in to the **same Tailscale account** on both
+    the Bambuddy host and the slicer machine — everything works automatically.
+    If you'd rather keep them on separate accounts (e.g. work laptop), the
+    Bambuddy admin can [share the Bambuddy node](https://tailscale.com/kb/1084/sharing)
+    from their tailnet to your account — same effect, separate billing.
+
+### Verify the connection works
+
+Before you touch the slicer, confirm end-to-end reachability from the slicer
+machine. Open a terminal / PowerShell on the **slicer machine** and run:
+
+```bash
+tailscale ping 100.x.x.x         # ICMP via tailnet
+curl -k https://100.x.x.x:8000/  # Bambuddy web UI
+```
+
+- `tailscale ping` should show `pong` within a few ms once the direct path
+  is established (it may briefly show `via DERP` first while NAT traversal
+  negotiates — that's normal and still works).
+- `curl -k` should return the Bambuddy login page HTML. The `-k` is needed
+  only until you import Bambuddy's CA into the slicer machine (see
+  [certificate installation](#certificate-installation)).
+
+If both succeed, your slicer is ready to talk to Bambuddy over Tailscale.
 
 ### Setup — per VP
 
