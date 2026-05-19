@@ -9,6 +9,24 @@ description: Install Bambuddy on your system
 
 ---
 
+## :material-youtube: Video Walkthrough
+
+Prefer to watch instead of read? **[@Help3d](https://www.youtube.com/@Help3d)** walks through the entire setup from a fresh Raspberry Pi to printing through virtual printers — Tailscale HTTPS, SSH, install, virtual printers, and certificate import all in one go.
+
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3); max-width: 900px; margin: 1rem auto;">
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/MTIPwPii8HA"
+    title="Bambuddy — Full Walkthrough (by @Help3d)"
+    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+    loading="lazy"></iframe>
+</div>
+
+<p style="text-align: center; font-size: 0.9rem; opacity: 0.8;">Video by <a href="https://www.youtube.com/@Help3d" target="_blank" rel="noopener">@Help3d</a> — covers Pi setup, SSH, install, Tailscale HTTPS, virtual printers, and certificate import.</p>
+
+---
+
 ## :material-rocket: Quick Install (Recommended)
 
 The easiest way to install Bambuddy. Interactive scripts that handle everything for you.
