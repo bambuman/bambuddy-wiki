@@ -11,6 +11,24 @@ Solutions for common issues with Bambuddy.
 
 ## :material-printer-3d: Printer Connection Issues
 
+### Run the Connection Diagnostic first
+
+Before working through the steps below, let Bambuddy check for you. The
+built-in **Connection Diagnostic** runs the same checks a maintainer would:
+port reachability (MQTT 8883, FTPS 990, RTSPS 322), LAN Developer Mode,
+Docker network mode, printer/host subnet match, and printer credentials.
+Each result comes with a plain-language fix.
+
+Open it from any of:
+
+- The **printer card** — a *Run diagnostic* button appears when a printer is offline.
+- The **Add Printer** dialog — *Run diagnostic* tests the address and credentials before you save.
+- **System page → Connection Diagnostic** — run it for any configured printer on demand.
+
+Most "won't connect" and "won't print" problems are identified here in a few seconds.
+
+---
+
 ### Printer Won't Connect
 
 **Symptoms:** Printer shows as disconnected, red indicator

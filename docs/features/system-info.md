@@ -169,6 +169,23 @@ Optimize database size:
 
 ---
 
+## :material-stethoscope: Connection Diagnostic
+
+The **Connection Diagnostic** section lists every configured printer with a
+*Run diagnostic* button. It checks why a printer won't connect or won't print:
+
+- TCP reachability of the MQTT (8883), FTPS (990), and RTSPS (322) ports
+- LAN Developer Mode
+- Docker network mode (host vs bridge)
+- Whether the printer and the Bambuddy host are on the same subnet
+- Printer credentials (access code / serial number)
+
+Each check reports pass, fail, warning, or skipped, with a plain-language fix.
+The same diagnostic is also available from the printer card (when a printer is
+offline) and the Add Printer dialog.
+
+---
+
 ## :material-bug: Debug Information
 
 ### Log Files

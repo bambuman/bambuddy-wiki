@@ -21,6 +21,20 @@ The in-app bug report feature provides a quick way to report issues:
 
 ---
 
+## :material-stethoscope: Setup-problem check
+
+When you open the bug report form, Bambuddy quietly runs a
+[Connection Diagnostic](../reference/troubleshooting.md) against your printers.
+If a printer has a connection problem — a blocked port, LAN Developer Mode
+turned off, Docker bridge networking, wrong access code — the detected issue
+and its fix are shown right in the form.
+
+Most bug reports turn out to be setup issues, so it's worth reading this panel
+first: fixing the highlighted problem often resolves things without a report.
+You can still submit a report regardless.
+
+---
+
 ## :material-send: Submitting a Report
 
 1. Click the red **bug icon** in the bottom-right corner of any page
