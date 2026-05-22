@@ -108,6 +108,13 @@ Python sidecar that copies per-spool prices from Spoolman into Bambuddy's local 
 **Author:** [ojimpo](https://github.com/ojimpo) &middot; [Repository](https://github.com/ojimpo/bambuddy-spoolman-cost-sync)
 </div>
 
+<div class="feature-card" markdown>
+### [:material-cellphone-nfc: Spool NFC PWA](https://github.com/Poltavtcev/spool-nfc-pwa)
+Mobile Progressive Web App for reading and writing OpenTag3D NFC tags (NTAG213/215/216) on unofficial filament spools straight from your phone. Scan a tag to find or link a spool, browse the inventory with material filters and remaining-weight indicators, assign spools to AMS and external slots, and update weights &mdash; all over Bambuddy's REST API with an API key. Installs as a PWA on Android and desktop Chrome, and credentials stay in the browser only. NFC writing needs Chrome on Android with Web NFC; iOS can install the PWA but cannot use NFC.
+
+**Author:** [Poltavtcev](https://github.com/Poltavtcev) &middot; [Repository](https://github.com/Poltavtcev/spool-nfc-pwa)
+</div>
+
 </div>
 
 ---
