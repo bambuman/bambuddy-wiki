@@ -593,7 +593,7 @@ Passwords are never stored in plain text. Bambuddy uses PBKDF2-SHA256 hashing wi
 ### Token Authentication
 
 - Bambuddy uses JWT (JSON Web Tokens) for authentication
-- Tokens expire after 7 days
+- Tokens expire after 24 hours
 - Tokens are stored in the browser's localStorage
 - Each API request includes the token for validation
 
@@ -659,7 +659,7 @@ If you forget your admin password and cannot log in:
 
 If you see "Session expired" or get redirected to login:
 
-- Your JWT token has expired (after 7 days)
+- Your JWT token has expired (after 24 hours)
 - Simply log in again to continue
 
 ### Cannot Access a Feature
