@@ -44,6 +44,24 @@ ESP-IDF firmware for an ESP32-S3 with PSRAM that presents an archive-only Bambu 
 
 ---
 
+## :material-cellphone: Mobile Apps
+
+<div class="feature-grid" markdown>
+
+<div class="feature-card" markdown>
+### [:material-android: BuddyDash](https://github.com/ChronosWing/BuddyDash)
+Unofficial Android companion app for Bambuddy &mdash; a mobile-first dashboard for quick status checks, multi-printer overview, archives browsing, and smart-outlet control. The standout is NFC quick actions: stick a tag on the printer and tap it to clear the plate, toggle power (with idle-safety checks), or run a finish workflow &mdash; no app navigation needed. Built with Jetpack Compose, with layouts optimised for phones, foldables, and tablets. Connects to your existing Bambuddy server through the REST API; it's a companion, not a replacement.
+
+!!! warning "Beta"
+    The author flags BuddyDash as beta &mdash; expect rough edges and breaking changes. Track the repo for stable releases.
+
+**Author:** [ChronosWing](https://github.com/ChronosWing) &middot; [Repository](https://github.com/ChronosWing/BuddyDash)
+</div>
+
+</div>
+
+---
+
 ## :material-home-automation: Home Automation
 
 <div class="feature-grid" markdown>
