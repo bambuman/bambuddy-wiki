@@ -35,11 +35,39 @@ It asks for:
     Use the default installation path unless you have a specific reason to change it.
 
 !!! tip "Unattended install"
-    For managed deployments, download the script once and run it with defaults:
+    For managed deployments, add parameters after `.\windows-installer.ps1`
+    in the same one-liner:
 
     ```powershell
-    .\windows-installer.ps1 -InstallDir C:\Bambuddy -Port 8000 -Yes
+    powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/maziggy/bambuddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1 -Port 8010 -Yes"
     ```
+
+---
+
+## :material-tune: Installer Parameters
+
+You can pass parameters directly after `.\windows-installer.ps1` in the download
+one-liner or when running a previously downloaded copy.
+
+| Parameter | Value | Default | Description |
+|-----------|-------|---------|-------------|
+| `-InstallDir` | Path | `C:\Bambuddy` | Installation directory. The Git checkout is placed in `InstallDir\bambuddy`; data and logs are stored as sibling folders. |
+| `-Port` | 1-65535 | `8000` | HTTP port used by Bambuddy. The installer checks whether the selected port is already in use. |
+| `-Yes` | Switch | Off | Non-interactive mode. Accepts the default answer for yes/no prompts. |
+| `-Silent` | Switch | Off | Non-interactive mode with reduced console output. |
+| `-NoService` | Switch | Off | Skip Windows Service registration. |
+| `-NoStart` | Switch | Off | Do not start Bambuddy at the end of installation. |
+| `-LocalOnly` | Switch | Off | Bind Bambuddy to `127.0.0.1` instead of exposing it on all LAN interfaces. |
+
+Examples:
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/maziggy/bambuddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1 -Port 8010 -Yes"
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "iwr -useb https://raw.githubusercontent.com/maziggy/bambuddy/main/install/windows-installer.ps1 -OutFile windows-installer.ps1; .\windows-installer.ps1 -InstallDir C:\BambuddyLocal -Port 8011 -Yes -NoService -NoStart -LocalOnly"
+```
 
 ---
 
