@@ -185,31 +185,32 @@ volumes:
 
     Bambuddy will automatically create all tables on first startup. Backup/restore uses `pg_dump`/`pg_restore` instead of file copy.
 
-!!! tip "External library folders (BAMBUDDY_EXTERNAL_ROOTS)"
-    The **File Manager → Add external folder** feature lets users mount host directories (NAS shares, USB drives, local prints directories) into the library without copying files. As of v0.2.5b1 this is **opt-in for operators** — set `BAMBUDDY_EXTERNAL_ROOTS` to a colon-separated list of host paths (inside the container) that users are permitted to register. Empty (the default) disables the feature.
+### External library folders (BAMBUDDY_EXTERNAL_ROOTS)
 
-    Operators must also bind-mount the host directory into the container at the same path declared in `BAMBUDDY_EXTERNAL_ROOTS`. The Bambuddy data / log / static directories cannot appear as external roots even if you list them here — they are always rejected as a hard safeguard against cross-user data exposure.
+The **File Manager → Add external folder** feature lets users mount host directories (NAS shares, USB drives, local prints directories) into the library without copying files. As of v0.2.5b1 this is **opt-in for operators** — set `BAMBUDDY_EXTERNAL_ROOTS` to a colon-separated list of host paths (inside the container) that users are permitted to register. Empty (the default) disables the feature.
 
-    Example: allow users to mount one NAS share read-only:
+Operators must also bind-mount the host directory into the container at the same path declared in `BAMBUDDY_EXTERNAL_ROOTS`. The Bambuddy data / log / static directories cannot appear as external roots even if you list them here — they are always rejected as a hard safeguard against cross-user data exposure.
 
-    ```yaml
-    volumes:
-      - /mnt/nas/3d-prints:/external/nas:ro
-    environment:
-      - BAMBUDDY_EXTERNAL_ROOTS=/external/nas
-    ```
+Example: allow users to mount one NAS share read-only:
 
-    Example: allow two roots (NAS + local projects), comma-separated host paths but colon-separated in-container:
+```yaml
+volumes:
+  - /mnt/nas/3d-prints:/external/nas:ro
+environment:
+  - BAMBUDDY_EXTERNAL_ROOTS=/external/nas
+```
 
-    ```yaml
-    volumes:
-      - /mnt/nas/3d-prints:/external/nas:ro
-      - /srv/library:/external/projects:ro
-    environment:
-      - BAMBUDDY_EXTERNAL_ROOTS=/external/nas:/external/projects
-    ```
+Example: allow two roots (NAS + local projects), comma-separated host paths but colon-separated in-container:
 
-    `:ro` is recommended unless you want users uploading files back into the host share. Why operator-opt-in? See [the security advisory note](../features/file-manager.md#external-folders-security-stance) — pre-v0.2.5b1 versions used a denylist of system paths which left every other host location implicitly mountable. The allowlist makes mounting an explicit, auditable decision per deployment.
+```yaml
+volumes:
+  - /mnt/nas/3d-prints:/external/nas:ro
+  - /srv/library:/external/projects:ro
+environment:
+  - BAMBUDDY_EXTERNAL_ROOTS=/external/nas:/external/projects
+```
+
+`:ro` is recommended unless you want users uploading files back into the host share. Why operator-opt-in? See [the security advisory note](../features/file-manager.md#external-folders-security-stance) — pre-v0.2.5b1 versions used a denylist of system paths which left every other host location implicitly mountable. The allowlist makes mounting an explicit, auditable decision per deployment.
 
 ### Custom Port
 

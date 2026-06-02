@@ -225,7 +225,7 @@ Spoolman filament sync, Bambu Cloud profiles, K-profiles (pressure advance), ext
 
 <div class="feature-card" markdown>
 ### :material-file-document-edit: Help with Docs or the Forum?
-[See Contributors Wanted](#contributors-wanted) or email [martin@bambuddy.cool](mailto:martin@bambuddy.cool)
+[See Want to Contribute](#want-to-contribute) or email [martin@bambuddy.cool](mailto:martin@bambuddy.cool)
 </div>
 
 </div>

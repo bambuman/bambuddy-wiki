@@ -182,7 +182,10 @@ nav:
     - Configuration: spoolbuddy/configuration.md
     - Usage: spoolbuddy/usage.md
 
-  - Community Add-ons: community/index.md
+  - Community Add-ons:
+    - community/index.md
+    - Bambutton: community/bambutton.md
+    - Bambuddy MCP Server: community/bambuddy-mcp.md
 
   - Reference:
     - reference/index.md
