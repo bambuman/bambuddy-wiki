@@ -7,6 +7,9 @@ description: Manage Bambu Cloud slicer presets
 
 Manage and compare your Bambu Cloud slicer presets directly from Bambuddy.
 
+!!! info "Looking for Orca Cloud?"
+    Bambuddy also supports syncing profiles from your OrcaSlicer Cloud account — see [Orca Cloud Profiles](orca-cloud-profiles.md). Both clouds work side by side; you can connect to either, both, or neither.
+
 ![Cloud Profiles](../assets/cloud_profiles-1.png){ .screenshot }
 
 ---

@@ -197,6 +197,9 @@ Works with both SQLite and PostgreSQL installations.
 !!! info "Retention"
     When a new backup completes, Bambuddy automatically deletes the oldest backups beyond the retention count. For example, with retention set to 5, only the 5 most recent backups are kept.
 
+!!! info "Timezone"
+    The time-of-day picker is interpreted in the container's local timezone, read from the `TZ` environment variable. The resolved zone name (e.g. `Europe/Berlin`) is shown next to the picker. If `TZ` is not set, times are interpreted as UTC. Set `TZ` in `docker-compose.yml` (e.g. `TZ=Europe/Berlin`) to match your local time.
+
 ### Managing Backups
 
 Each backup in the list supports three actions:
