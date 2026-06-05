@@ -422,6 +422,15 @@ volumes:
 !!! warning "Manual Printer Setup Required"
     On macOS/Windows, you must add printers manually by IP address. Automatic discovery is not available because Docker Desktop cannot access LAN multicast traffic.
 
+!!! warning "Bridge mode + Docker's default userland proxy: 3.5 GB RAM footprint"
+    With the default `"userland-proxy": true`, Docker spawns one `docker-proxy` host process per exposed port × protocol × address family (IPv4 + IPv6). The 1001-port FTP passive range produces ~2000 host processes pinning roughly **3.5 GB of host RAM** before the container has even started — and because those processes are host-level, they're invisible to `docker stats`, which makes the leak very hard to diagnose. Linux's host-mode default avoids this entirely. If you're on Docker Desktop (macOS / Windows) or any other setup that forces bridge mode, set:
+
+    ```json
+    { "userland-proxy": false }
+    ```
+
+    in `/etc/docker/daemon.json` and restart Docker. The kernel then does NAT directly via iptables / nftables — no per-port host process needed. Only side-effect is that connections originating from `127.0.0.1` on the host itself can't reach the container, which doesn't matter for nearly every Bambuddy install. Confirmed by the reporter of [#1646](https://github.com/maziggy/bambuddy/issues/1646) as the fix on their setup; the 1001-port VP passive range itself is load-bearing for multi-VP collision avoidance and can't safely be narrowed.
+
 ### Printer Discovery in Docker
 
 !!! note "Virtual Printer SSDP Discovery"
