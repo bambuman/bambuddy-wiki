@@ -256,6 +256,11 @@ Bambuddy can automatically capture a camera snapshot when prints complete:
 
 This creates a visual record of your completed prints!
 
+!!! note "Photo is captured before the bed drops"
+    On most Bambu printers the end-gcode lowers the build plate as soon as the print finishes, which used to leave the snapshot framed on an almost-empty chamber. Bambuddy now sources the photo from a brief timelapse the printer records during the print — the firmware stops recording after the toolhead parks but *before* the bed drops, so the photo frames the finished print correctly. If you enabled timelapse for the print job the file is kept; otherwise Bambuddy deletes the timelapse from the printer's SD card automatically once the photo is captured.
+
+    This currently applies to prints **dispatched through Bambuddy** (queue, reprint, print-now from File Manager). Prints started directly on the printer's touchscreen, via the Bambu Handy app, or via Bambu Studio's "Send" function fall back to a live camera grab at completion — so the bed-down framing limitation still applies in that case. Track this in [#1397](https://github.com/maziggy/bambuddy/issues/1397).
+
 ---
 
 ## :material-scan-helper: Build Plate Empty Detection
