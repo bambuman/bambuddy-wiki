@@ -441,6 +441,62 @@ The PDF opens in a new browser tab. From there you can either print directly to 
 
 ---
 
+## :material-file-delimited: CSV Import & Export
+
+Add spools in bulk and get your inventory back out as a spreadsheet. Two buttons sit in the inventory page header — **Import CSV** and **Export CSV**. They operate on Bambuddy's own (local) inventory; in Spoolman mode the buttons are hidden, since Spoolman owns the data store.
+
+### Exporting
+
+*Export CSV* downloads your current active inventory (archived spools are excluded) using the fixed column schema below. `rgba` is written without a leading `#`, and `remaining` is filled in for you, so the file is ready to read in a spreadsheet and re-imports cleanly — handy for backups and for migrating between Bambuddy instances.
+
+### Importing
+
+*Import CSV* is a two-step, preview-first flow — nothing is written until you confirm:
+
+1. **Choose a file** (or drag it onto the drop zone). Bambuddy parses and validates it on the server and shows a **preview table**, one row per CSV line:
+    - :material-check-circle:{ .green } **valid** — will be created on confirm.
+    - :material-close-circle:{ .red } **error** — skipped, with the reason shown inline (e.g. `material is required`, `rgba must be 6- or 8-char hex`).
+    - **skipped** — blank lines.
+2. **Review**, then click **Import N valid rows**. Only the valid rows are created, in a single transaction. Invalid rows are never written — fix them in the CSV and re-upload.
+
+A summary at the top shows the valid / error / skipped counts. The preview writes nothing to your inventory, so you can iterate on a messy file safely.
+
+### Colour resolution
+
+You don't have to supply a hex value for every row. Bambuddy resolves the colour in this order:
+
+1. If `rgba` is present in the CSV, it wins.
+2. Otherwise, if `brand` + `color_name` match an entry in your [Color Catalog](#color-catalog) (case-insensitive), the hex, `extra_colors`, and `effect_type` are filled in automatically. Resolved rows are flagged with a :material-auto-fix: wand icon in the preview.
+3. Otherwise the colour is left blank.
+
+### CSV schema
+
+The header is fixed but **case- and space-tolerant** — `Color Name`, `color-name`, and `COLOR_NAME` all map to `color_name`. Only `material` is required; every other column is optional and may be left blank or omitted.
+
+| Column | Required | Notes |
+|---|---|---|
+| `material` | ✅ | e.g. `PLA`, `PETG`, `ABS`. |
+| `brand` | | e.g. `Polymaker`. Used with `color_name` for colour resolution. |
+| `subtype` | | e.g. `Basic`, `Matte`, `Silk`. |
+| `color_name` | | e.g. `Jade White`. |
+| `rgba` | | `RRGGBB` or `RRGGBBAA` hex, with or without `#`. 6-char values get an opaque alpha. |
+| `extra_colors` | | Comma-separated hex stops for multi-colour spools. |
+| `effect_type` | | `sparkle`, `silk`, `gradient`, … (same set as the spool form). |
+| `label_weight` | | Advertised net weight in grams. |
+| `weight_used` | | Grams consumed. Round-trips on export/import. |
+| `remaining` | | **Export-only**, derived (`label_weight − weight_used`). Ignored on import. |
+| `cost_per_kg` | | Cost per kilogram. |
+| `nozzle_temp_min` / `nozzle_temp_max` | | Temperature overrides in °C. |
+| `last_used` | | ISO-8601 timestamp of last use. |
+| `note` | | Free-text note. |
+
+!!! note "`remaining` is display-only"
+    Remaining weight is always derived from `label_weight − weight_used`, so it's exported for readability but ignored on import. `weight_used` is the single source of truth — set that to control how full a spool is.
+
+Validation mirrors the spool form exactly (the import reuses the same model), so anything the form would reject, the importer rejects too — with the offending row called out in the preview instead of failing the whole file.
+
+---
+
 ## :material-cog: Settings
 
 Configure the inventory system in **Settings > Filament**.
