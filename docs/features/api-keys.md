@@ -208,6 +208,11 @@ http://your-server:8000/api/v1
 | `/queue` | GET | View print queue |
 | `/queue` | POST | Add to queue |
 | `/statistics` | GET | Get statistics |
+| `/inventory/spools` | GET | List spools |
+| `/inventory/spools/by-tag` | GET | Find a spool by NFC `tray_uuid`/`tag_uid` |
+
+!!! note "Manage Inventory keys can read inventory"
+    Inventory read endpoints (such as `/inventory/spools` and `/inventory/spools/by-tag`) are reachable with either the **Read Status** scope *or* the **Manage Inventory** scope. A key created only with **Manage Inventory** — which can create, update, and delete spools — can therefore also read them back, without needing the broader Read Status scope. This is what lets an NFC inventory integration dedupe a scan with a single, narrowly-scoped key.
 
 See [API Reference](../reference/api.md) for complete documentation.
 
