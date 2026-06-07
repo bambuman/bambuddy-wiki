@@ -100,7 +100,7 @@ Each virtual printer uses these ports on its dedicated bind IP:
 | File Transfer | 6000 | TCP/TLS | Verify job & file upload tunnel (proxy mode) |
 | RTSP Camera | 322 | TCP/TLS | Camera streaming for X1/H2/P2 series (proxy mode, **and non-proxy modes when a target printer is configured** — required for the slicer's live camera view to work through the VP). Bambuddy listens on the VP's dedicated bind IP and transparently passes the RTSPS session through to the real printer's `:322`, end-to-end TLS, same as proxy mode. |
 | FTPS | 990 | TCP/TLS | File transfer control |
-| FTP Data | 50000-51000 | TCP | File transfer passive data (widened from 50000-50100 in 0.2.5) |
+| FTP Data | 50000-50029 (default; 10 per VP) | TCP | File transfer passive data — per-VP non-overlapping slice ([#1646](https://github.com/maziggy/bambuddy/issues/1646)). VP 1 → 50000-50009, VP 2 → 50010-50019, etc. Proxy mode still uses 50000-50100. |
 
 !!! note "Dual Bind Ports"
     Different versions of BambuStudio and OrcaSlicer use different ports for the bind/detect handshake. Bambuddy listens on **both 3000 and 3002** to support all slicer versions.
@@ -665,7 +665,7 @@ sudo ufw allow 990/tcp   # FTPS
 sudo ufw allow 6000/tcp  # File transfer tunnel
 sudo ufw allow 322/tcp   # RTSP camera (X1/H2/P2)
 sudo ufw allow 2024:2026/tcp  # Proprietary slicer ports (A1/P1S)
-sudo ufw allow 50000:51000/tcp  # FTP passive data (widened in 0.2.5)
+sudo ufw allow 50000:50099/tcp  # FTP passive data (10 ports per VP from 50000; widen for >10 VPs)
 ```
 
 **Firewall rules (if using firewalld):**
@@ -679,7 +679,7 @@ sudo firewall-cmd --permanent --add-port=990/tcp   # FTPS
 sudo firewall-cmd --permanent --add-port=6000/tcp  # File transfer tunnel
 sudo firewall-cmd --permanent --add-port=322/tcp   # RTSP camera (X1/H2/P2)
 sudo firewall-cmd --permanent --add-port=2024-2026/tcp  # Proprietary slicer ports (A1/P1S)
-sudo firewall-cmd --permanent --add-port=50000-51000/tcp  # FTP passive data (widened in 0.2.5)
+sudo firewall-cmd --permanent --add-port=50000-50099/tcp  # FTP passive data (10 ports per VP from 50000; widen for >10 VPs)
 sudo firewall-cmd --reload
 ```
 
@@ -725,7 +725,7 @@ sudo ufw allow 990/tcp   # FTPS
 sudo ufw allow 6000/tcp  # File transfer tunnel
 sudo ufw allow 322/tcp   # RTSP camera (X1/H2/P2)
 sudo ufw allow 2024:2026/tcp  # Proprietary slicer ports (A1/P1S)
-sudo ufw allow 50000:51000/tcp  # FTP passive data (widened in 0.2.5)
+sudo ufw allow 50000:50099/tcp  # FTP passive data (10 ports per VP from 50000; widen for >10 VPs)
 ```
 
 **Firewall rules (if using firewalld):**
@@ -739,7 +739,7 @@ sudo firewall-cmd --permanent --add-port=990/tcp   # FTPS
 sudo firewall-cmd --permanent --add-port=6000/tcp  # File transfer tunnel
 sudo firewall-cmd --permanent --add-port=322/tcp   # RTSP camera (X1/H2/P2)
 sudo firewall-cmd --permanent --add-port=2024-2026/tcp  # Proprietary slicer ports (A1/P1S)
-sudo firewall-cmd --permanent --add-port=50000-51000/tcp  # FTP passive data (widened in 0.2.5)
+sudo firewall-cmd --permanent --add-port=50000-50099/tcp  # FTP passive data (10 ports per VP from 50000; widen for >10 VPs)
 sudo firewall-cmd --reload
 ```
 
@@ -769,7 +769,7 @@ services:
       - "8883:8883"                    # MQTT
       - "322:322"                      # RTSP camera (X1/H2/P2)
       - "2024-2026:2024-2026"          # Proprietary slicer ports (A1/P1S)
-      - "50000-51000:50000-51000"      # FTP passive data (widened in 0.2.5)
+      - "50000-50029:50000-50029"      # FTP passive data (3 VPs × 10-port slice; widen for more VPs; proxy mode needs 50000-50100)
     volumes:
       - bambuddy_data:/app/data
       - bambuddy_logs:/app/logs
@@ -787,6 +787,9 @@ volumes:
 
 !!! tip "PASV Address"
     When using bridge mode, FTP passive data connections need to know the host's real IP. Set `VIRTUAL_PRINTER_PASV_ADDRESS` to your Docker host's LAN IP address.
+
+!!! info "How many FTP-data ports do I need to expose?"
+    Each Virtual Printer is allocated its own 10-port passive-mode slice ([#1646](https://github.com/maziggy/bambuddy/issues/1646)): VP 1 → 50000-50009, VP 2 → 50010-50019, VP N → `50000` to `500{N-1}9`. Expose only the range your VPs actually use — with Docker's default `userland-proxy`, each exposed port spawns ~2 host processes (~3.5 MB RAM each), so a 1001-port pool can cost ~3.5 GB of host RAM that doesn't show in `docker stats` (it's host-level, not container-level). **Proxy mode** is the one exception: it transparently forwards the real printer's full FTP data range, so a proxy-mode VP needs `50000-50100:50000-50100` exposed.
 
 ---
 
@@ -1264,7 +1267,7 @@ Unlike the server modes that archive files locally, **Proxy Mode** forwards your
 **Network Requirements:**
 
 - Bambuddy server accessible from the slicer (same LAN, VPN, or internet)
-- Ports **3000 + 3002** (bind), **990** (FTP), **6000** (file transfer), **8883** (MQTT), **322** (RTSP camera), **2024-2026** (A1/P1S proprietary), and **50000-51000** (FTP data — widened from 50000-50100 in 0.2.5) reachable from the slicer
+- Ports **3000 + 3002** (bind), **990** (FTP), **6000** (file transfer), **8883** (MQTT), **322** (RTSP camera), **2024-2026** (A1/P1S proprietary), and **FTP data** reachable from the slicer (10 ports per VP starting at 50000 — VP 1 = 50000-50009, etc.; proxy mode uses the full 50000-50100)
 - Static IP or dynamic DNS for your Bambuddy server (if remote)
 
 **Supported Network Configurations:**
@@ -1298,7 +1301,7 @@ To access from outside your home network, forward these ports on your router:
 | 6000 | 6000 | TCP | Bambuddy server IP |
 | 8883 | 8883 | TCP | Bambuddy server IP |
 | 322 | 322 | TCP | Bambuddy server IP |
-| 50000-51000 | 50000-51000 | TCP | Bambuddy server IP (widened from 50000-50100 in 0.2.5) |
+| 50000-500N9 | 50000-500N9 | TCP | Bambuddy server IP (10 ports per VP; N = vp_count - 1. Proxy mode: forward 50000-50100 instead) |
 
 !!! tip "Recommended: Use a VPN"
     For best security, use a VPN like **Tailscale** or **WireGuard** between your slicer
@@ -1307,7 +1310,7 @@ To access from outside your home network, forward these ports on your router:
 
     Other options:
 
-    - **Cloudflare Tunnel** — Free tunneling (TCP passthrough for ports 3000, 3002, 990, 8883, 50000-51000)
+    - **Cloudflare Tunnel** — Free tunneling (TCP passthrough for ports 3000, 3002, 990, 8883, and the per-VP FTP-data range)
     - **nginx/Caddy/Traefik** — Reverse proxy for web UI only; FTP/MQTT/bind need direct access
 
 !!! warning "Security Note"
@@ -1394,7 +1397,7 @@ Each row is marked pass, fail, warning or skipped, with a short explanation of w
    nc -zv BAMBUDDY_IP 3000
    nc -zv BAMBUDDY_IP 3002
    ```
-3. **Check firewall** — ports 3000/tcp, 3002/tcp, 2021/udp, 8883/tcp, 990/tcp, 2024-2026/tcp, 50000-51000/tcp must be open (FTP-data range widened from 50000-50100 in 0.2.5)
+3. **Check firewall** — ports 3000/tcp, 3002/tcp, 2021/udp, 8883/tcp, 990/tcp, 2024-2026/tcp, and the FTP-data range must be open. The FTP-data range is **10 ports per VP** starting at 50000 (VP 1 → 50000-50009, VP 2 → 50010-50019, etc.); proxy-mode VPs need the full 50000-50100 forwarded
 5. **Same network?** — SSDP discovery only works on the same LAN/subnet. Use "bind with access code" for VPN, remote, or Docker bridge setups
 
 ### FTP Error / Connection Reset

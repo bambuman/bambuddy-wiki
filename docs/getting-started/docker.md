@@ -375,25 +375,27 @@ services:
     - Bambuddy will be accessible on port 8000 directly
     - All other features work the same
 
-### macOS and Windows (Docker Desktop)
+!!! tip "Host mode not an option? Bridge works too"
+    Host mode is the default because SSDP printer discovery needs L2 multicast — but it's a deliberate trade-off, not a one-size-fits-all default. If you run Bambuddy on a multi-service Linux host (NAS, dedicated Docker VM, Synology DSM, Unraid) where another container already binds a port Bambuddy wants, host mode isn't an option for you. Bridge mode is a fully supported alternative for setups that add printers by IP and skip discovery — read the **[Bridge Mode](#bridge-mode-linux-and-docker-desktop)** section below for the port-exposure rules. Both Linux multi-service hosts and Docker Desktop (macOS / Windows) follow the same configuration there.
 
-Docker Desktop on macOS and Windows runs containers inside a Linux VM, so `network_mode: host` connects to the VM's network, not your computer's network. This means:
+### Bridge Mode (Linux and Docker Desktop)
 
-- **Port 8000 won't be accessible** via localhost
-- **Printer discovery won't work** (the container can't see your LAN)
+Bridge mode is required on **any** setup that can't use `network_mode: host`. That covers two distinct audiences with the same configuration:
 
-**Solution:** Use port mapping instead of host mode:
+- **Linux multi-service hosts** (NAS, dedicated Docker VM, Synology DSM, Unraid, shared homelab box) where host mode would conflict with ports already bound by other containers.
+- **Docker Desktop on macOS / Windows**, where host mode connects to the Linux VM rather than your computer's network ([more on the macOS/Windows specifics below](#macos-and-windows-docker-desktop)).
+
+Both cases lose automatic SSDP printer discovery — add printers manually by IP instead. The compose snippet for both is the same:
 
 ```yaml
 services:
   bambuddy:
     image: ghcr.io/maziggy/bambuddy:latest
     container_name: bambuddy
-    # network_mode: host  # Doesn't work on macOS/Windows
     cap_add:
       - NET_BIND_SERVICE
     ports:
-      - "${PORT:-8000}:8000"           # Use PORT=8080 docker compose up for custom port
+      - "${PORT:-8000}:8000"           # Web UI
       - "3000:3000"                    # Virtual printer bind/detect
       - "3002:3002"                    # Virtual printer bind/detect (alt port)
       - "990:990"                      # Virtual printer FTPS
@@ -401,12 +403,10 @@ services:
       - "6000:6000"                    # Virtual printer file transfer tunnel
       - "322:322"                      # Virtual printer RTSP camera (X1/H2/P2)
       - "2024-2026:2024-2026"          # Virtual printer proprietary ports (A1/P1S)
-      - "50000-51000:50000-51000"      # Virtual printer FTP passive data (range widened to 1001 ports in 0.2.5; covers both non-proxy and proxy mode)
+      - "50000-50029:50000-50029"      # Virtual printer FTP passive data — 3 VPs × 10-port slice
     volumes:
       - bambuddy_data:/app/data
       - bambuddy_logs:/app/logs
-      # Share virtual printer certs with native installation
-      - ./virtual_printer:/app/data/virtual_printer
     environment:
       - TZ=Europe/Berlin
       # Required for virtual printer FTP passive mode behind Docker NAT:
@@ -419,17 +419,32 @@ volumes:
   bambuddy_logs:
 ```
 
+!!! info "FTP passive ports are sliced per VP — only expose what you need"
+    Each Virtual Printer is assigned its own non-overlapping 10-port passive-mode slice ([#1646](https://github.com/maziggy/bambuddy/issues/1646)): VP 1 → `50000-50009`, VP 2 → `50010-50019`, VP 3 → `50020-50029`, and so on. **Only expose the range your VPs actually use:**
+
+    - **1 VP** → `50000-50009:50000-50009` (10 ports)
+    - **3 VPs** (default above) → `50000-50029:50000-50029` (30 ports)
+    - **N VPs** → `50000-500{N-1}9:50000-500{N-1}9` (`N × 10` ports)
+    - **Proxy mode** → `50000-50100:50000-50100` is still required for any VP — proxy mode transparently forwards the real printer's full FTP-data range, not Bambuddy's slice.
+
+    Why exposing the minimum matters: with Docker's default `"userland-proxy": true`, every exposed port spawns one `docker-proxy` host process per address family (IPv4 + IPv6). A 1001-port range produces ~2000 such processes pinning ~3.5 GB of host RAM that doesn't appear in `docker stats` (host-level, not container-level). The 30-port default above is ~60 processes / ~210 MB — and a single-VP install is ~20 processes / ~70 MB.
+
+    If you can't narrow the exposed range and want a daemon-wide reduction, setting `{ "userland-proxy": false }` in `/etc/docker/daemon.json` removes the `docker-proxy` cost across every container on the host — that's a global trade-off, so the per-VP slicing above is the lower-impact lever.
+
+!!! tip "PASV Address"
+    Bridge mode hides the host's real IP from the FTP server inside the container. Set `VIRTUAL_PRINTER_PASV_ADDRESS` (commented in the snippet above) to your Docker host's LAN IP so the FTP server tells slicers the right address for the passive data connection.
+
+### macOS and Windows (Docker Desktop)
+
+Docker Desktop on macOS and Windows runs containers inside a Linux VM, so `network_mode: host` connects to the VM's network, not your computer's network. This means:
+
+- **Port 8000 won't be accessible** via localhost
+- **Printer discovery won't work** (the container can't see your LAN)
+
+**Solution:** use the **[Bridge Mode](#bridge-mode-linux-and-docker-desktop)** configuration above — the compose snippet, port-mapping rules, and FTP-passive slicing guidance apply identically here.
+
 !!! warning "Manual Printer Setup Required"
     On macOS/Windows, you must add printers manually by IP address. Automatic discovery is not available because Docker Desktop cannot access LAN multicast traffic.
-
-!!! warning "Bridge mode + Docker's default userland proxy: 3.5 GB RAM footprint"
-    With the default `"userland-proxy": true`, Docker spawns one `docker-proxy` host process per exposed port × protocol × address family (IPv4 + IPv6). The 1001-port FTP passive range produces ~2000 host processes pinning roughly **3.5 GB of host RAM** before the container has even started — and because those processes are host-level, they're invisible to `docker stats`, which makes the leak very hard to diagnose. Linux's host-mode default avoids this entirely. If you're on Docker Desktop (macOS / Windows) or any other setup that forces bridge mode, set:
-
-    ```json
-    { "userland-proxy": false }
-    ```
-
-    in `/etc/docker/daemon.json` and restart Docker. The kernel then does NAT directly via iptables / nftables — no per-port host process needed. Only side-effect is that connections originating from `127.0.0.1` on the host itself can't reach the container, which doesn't matter for nearly every Bambuddy install. Confirmed by the reporter of [#1646](https://github.com/maziggy/bambuddy/issues/1646) as the fix on their setup; the 1001-port VP passive range itself is load-bearing for multi-VP collision avoidance and can't safely be narrowed.
 
 ### Printer Discovery in Docker
 
